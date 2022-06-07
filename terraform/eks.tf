@@ -10,6 +10,10 @@ data "aws_ssm_parameter" "ssm-prod-subnet-public-2" {
   name = "/vpc/prod-subnet-public-2"
 }
 
+resource "aws_kms_key" "eks" {
+  description = "EKS Secret Encryption Key"
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 18.0"
@@ -30,7 +34,7 @@ module "eks" {
   }
 
   cluster_encryption_config = [{
-    provider_key_arn = "ac01234b-00d9-40f6-ac95-e42345f78b00"
+    provider_key_arn = aws_kms_key.eks.arn
     resources        = ["secrets"]
   }]
 
