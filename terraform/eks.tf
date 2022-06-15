@@ -13,22 +13,22 @@ data "aws_ssm_parameter" "ssm-prod-subnet-public-2" {
 data "aws_caller_identity" "current" {}
 
 data "aws_eks_cluster" "default" {
-  name = local.cluster_name
+  name = var.cluster_name
 }
 
 data "aws_eks_cluster_auth" "default" {
-  name = local.cluster_name
+  name = var.cluster_name
 }
 
 provider "kubernetes" {
-  host                   = module.eks_main.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks_main.cluster_certificate_authority_data)
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
 
   exec {
     api_version = "client.authentication.k8s.io/v1alpha1"
     command     = "aws"
     # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks_main.cluster_id, "--region", "us-east-1"]
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_id, "--region", "us-east-1"]
   }
 }
 
