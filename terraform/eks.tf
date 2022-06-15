@@ -18,7 +18,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 18.0"
 
-  cluster_name    = "odin"
+  cluster_name    = var.cluster_name
   cluster_version = "1.22"
 
   cluster_endpoint_public_access = true
@@ -41,39 +41,6 @@ module "eks" {
   vpc_id     = data.aws_ssm_parameter.ssm-vpc-id.value
   subnet_ids = [data.aws_ssm_parameter.ssm-prod-subnet-public-1.value, data.aws_ssm_parameter.ssm-prod-subnet-public-2.value]
 
-  # Self Managed Node Group(s)
-  self_managed_node_group_defaults = {
-    instance_type                          = "t2.micro"
-    update_launch_template_default_version = true
-    iam_role_additional_policies = [
-      "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    ]
-  }
-
-  self_managed_node_groups = {
-    one = {
-      name         = "mixed-1"
-      max_size     = 3
-      desired_size = 1
-
-      use_mixed_instances_policy = true
-      mixed_instances_policy = {
-        instances_distribution = {
-          on_demand_base_capacity                  = 100
-          on_demand_percentage_above_base_capacity = 0
-          spot_allocation_strategy                 = "capacity-optimized"
-        }
-
-        override = [
-          {
-            instance_type     = "t2.micro"
-            weighted_capacity = "1"
-          }
-        ]
-      }
-    }
-  }
-
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     disk_size      = 8
@@ -89,18 +56,6 @@ module "eks" {
 
       instance_types = ["t2.micro"]
       capacity_type  = "ON_DEMAND"
-    }
-  }
-
-  # Fargate Profile(s)
-  fargate_profiles = {
-    default = {
-      name = "default"
-      selectors = [
-        {
-          namespace = "default"
-        }
-      ]
     }
   }
 
